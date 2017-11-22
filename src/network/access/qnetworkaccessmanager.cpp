@@ -1617,7 +1617,8 @@ void QNetworkAccessManagerPrivate::_q_networkSessionStateChanged(QNetworkSession
         emit q->networkSessionConnected();
     lastSessionState = state;
 
-    if (online && state == QNetworkSession::Disconnected) {
+    if (online && (state == QNetworkSession::Disconnected
+                   || state == QNetworkSession::NotAvailable)) {
         Q_FOREACH (const QNetworkConfiguration &cfg, networkConfigurationManager.allConfigurations()) {
             if (cfg.state().testFlag(QNetworkConfiguration::Active)) {
                 reallyOnline = true;
@@ -1626,6 +1627,7 @@ void QNetworkAccessManagerPrivate::_q_networkSessionStateChanged(QNetworkSession
     } else if (state == QNetworkSession::Connected || state == QNetworkSession::Roaming) {
         reallyOnline = true;
     }
+    online = reallyOnline;
 
     if (!reallyOnline) {
         if (state != QNetworkSession::Connected && state != QNetworkSession::Roaming) {
@@ -1641,7 +1643,6 @@ void QNetworkAccessManagerPrivate::_q_networkSessionStateChanged(QNetworkSession
                 emit q->networkAccessibleChanged(networkAccessible);
             }
     }
-    online = reallyOnline;
     if (online && (state != QNetworkSession::Connected && state != QNetworkSession::Roaming)) {
         _q_networkSessionClosed();
         createSession(q->configuration());
@@ -1658,9 +1659,9 @@ void QNetworkAccessManagerPrivate::_q_onlineStateChanged(bool isOnline)
         online = (networkConfiguration.state() & QNetworkConfiguration::Active);
     } else {
         if (online != isOnline) {
-                _q_networkSessionClosed();
-                createSession(q->configuration());
             online = isOnline;
+            _q_networkSessionClosed();
+            createSession(q->configuration());
         }
     }
     if (online) {
