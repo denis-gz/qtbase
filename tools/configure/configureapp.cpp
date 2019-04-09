@@ -218,7 +218,7 @@ Configure::Configure(int& argc, char** argv) : verbose(0)
 
     dictionary[ "VERSION" ]         = version;
     {
-        QRegExp version_re("([0-9]*)\\.([0-9]*)\\.([0-9]*)(|-.*)");
+        QRegExp version_re("([0-9]*)\\.([0-9]*)\\.([0-9]*)\\.([0-9]*)(|-.*)");
         if (version_re.exactMatch(version)) {
             dictionary[ "VERSION_MAJOR" ] = version_re.cap(1);
             dictionary[ "VERSION_MINOR" ] = version_re.cap(2);

@@ -50,14 +50,15 @@ if not exist mkspecs (
 )
 
 rem Extract Qt's version from .qmake.conf
-for /f "eol=# tokens=1,2,3,4 delims=.= " %%i in (%QTSRC%.qmake.conf) do (
+for /f "eol=# tokens=1,2,3,4,5 delims=.= " %%i in (%QTSRC%.qmake.conf) do (
     if %%i == MODULE_VERSION (
         set QTVERMAJ=%%j
         set QTVERMIN=%%k
         set QTVERPAT=%%l
+        set QTVERREV=%%m
     )
 )
-set QTVERSION=%QTVERMAJ%.%QTVERMIN%.%QTVERPAT%
+set QTVERSION=%QTVERMAJ%.%QTVERMIN%.%QTVERPAT%.%QTVERREV%
 
 perl %QTSRC%bin\syncqt.pl -minimal -version %QTVERSION% -module QtCore -outdir "%QTDIR%" %QTSRC%
 if errorlevel 1 goto exit
