@@ -97,6 +97,8 @@ SOURCES += \
         io/qloggingregistry.cpp
 
 win32 {
+        DEFINES += NO_LNK_LINK
+
         SOURCES += io/qfsfileengine_win.cpp
         SOURCES += io/qlockfile_win.cpp
 

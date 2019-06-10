@@ -1001,6 +1001,9 @@ bool QFileSystemEngine::fillMetaData(const QFileSystemEntry &entry, QFileSystemM
     data.entryFlags &= ~what;
 
     QFileSystemEntry fname;
+#ifdef NO_LNK_LINK
+    fname = entry;
+#else
     data.knownFlagsMask |= QFileSystemMetaData::WinLnkType;
     // Check for ".lnk": Directories named ".lnk" should be skipped, corrupted
     // link files should still be detected as links.
@@ -1011,6 +1014,7 @@ bool QFileSystemEngine::fillMetaData(const QFileSystemEntry &entry, QFileSystemM
     } else {
         fname = entry;
     }
+#endif
 
     if (fname.isEmpty()) {
         data.knownFlagsMask |= what;
