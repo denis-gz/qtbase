@@ -29,6 +29,8 @@ osx
 osx
 [optimizedResize_topLevel]
 osx
+[render_windowOpacity]
+macos arm
 [render_systemClip]
 osx
 [showMinimizedKeepsFocus]
