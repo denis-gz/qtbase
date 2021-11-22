@@ -231,9 +231,13 @@ headersclean:!internal_module {
                 hcleanFLAGS += -Wcast-align
 
             clang_ver = $${QT_CLANG_MAJOR_VERSION}.$${QT_CLANG_MINOR_VERSION}
+            apple_ver = $${QT_APPLE_CLANG_MAJOR_VERSION}.$${QT_APPLE_CLANG_MINOR_VERSION}
             versionAtLeast(clang_ver, 3.8): hcleanFLAGS += -Wdouble-promotion
 
-            !clang {
+            clang {
+                versionAtLeast(apple_ver, 10.0): hcleanFLAGS += -Wno-deprecated-copy
+
+            } else {
                 # options accepted only by GCC
 
                 gcc_ver = $${QT_GCC_MAJOR_VERSION}.$${QT_GCC_MINOR_VERSION}
