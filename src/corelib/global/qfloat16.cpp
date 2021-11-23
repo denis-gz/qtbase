@@ -127,7 +127,7 @@ Q_REQUIRED_RESULT bool qIsFinite(qfloat16 f) Q_DECL_NOTHROW { return qt_is_finit
     exactness is stronger the smaller the numbers are.
  */
 
-#if QT_COMPILER_SUPPORTS(F16C)
+#if defined(__F16C__) && QT_COMPILER_SUPPORTS(F16C)
 static inline bool hasFastF16()
 {
     // All processors with F16C also support AVX, but YMM registers
@@ -135,17 +135,36 @@ static inline bool hasFastF16()
     return qCpuHasFeature(F16C) && qCpuHasFeature(AVX);
 }
 
-extern "C" {
-#ifdef QFLOAT16_INCLUDE_FAST
-#  define f16cextern    static
-#else
-#  define f16cextern    extern
-#endif
+QT_FUNCTION_TARGET(F16C)
+void qFloatToFloat16_fast(quint16 *out, const float *in, qsizetype len) Q_DECL_NOEXCEPT
+{
+    qsizetype i = 0;
+    int epilog_i;
+    for (; i < len - 7; i += 8)
+        _mm_storeu_si128((__m128i *)(out + i), _mm256_cvtps_ph(_mm256_loadu_ps(in + i), 0));
+    if (i < len - 3) {
+        _mm_storel_epi64((__m128i *)(out + i), _mm_cvtps_ph(_mm_loadu_ps(in + i), 0));
+        i += 4;
+    }
+    // Inlining "qfloat16::qfloat16(float f)":
+    for (epilog_i = 0; i < len && epilog_i < 3; ++i, ++epilog_i)
+        out[i] = _mm_extract_epi16(_mm_cvtps_ph(_mm_set_ss(in[i]), 0), 0);
+}
 
-f16cextern void qFloatToFloat16_fast(quint16 *out, const float *in, qsizetype len) Q_DECL_NOTHROW;
-f16cextern void qFloatFromFloat16_fast(float *out, const quint16 *in, qsizetype len) Q_DECL_NOTHROW;
-
-#undef f16cextern
+QT_FUNCTION_TARGET(F16C)
+void qFloatFromFloat16_fast(float *out, const quint16 *in, qsizetype len) Q_DECL_NOEXCEPT
+{
+    qsizetype i = 0;
+    int epilog_i;
+    for (; i < len - 7; i += 8)
+        _mm256_storeu_ps(out + i, _mm256_cvtph_ps(_mm_loadu_si128((const __m128i *)(in + i))));
+    if (i < len - 3) {
+        _mm_storeu_ps(out + i, _mm_cvtph_ps(_mm_loadl_epi64((const __m128i *)(in + i))));
+        i += 4;
+    }
+    // Inlining "qfloat16::operator float()":
+    for (epilog_i = 0; i < len && epilog_i < 3; ++i, ++epilog_i)
+        out[i] = _mm_cvtss_f32(_mm_cvtph_ps(_mm_cvtsi32_si128(in[i])));
 }
 
 #elif defined(__ARM_FP16_FORMAT_IEEE) && defined(__ARM_NEON__)
@@ -223,6 +242,4 @@ Q_CORE_EXPORT void qFloatFromFloat16(float *out, const qfloat16 *in, qsizetype l
 
 QT_END_NAMESPACE
 
-#ifdef QFLOAT16_INCLUDE_FAST
-#  include "qfloat16_f16c.c"
-#endif
+#include "qfloat16tables.cpp"
