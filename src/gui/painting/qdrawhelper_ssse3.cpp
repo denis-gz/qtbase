@@ -45,6 +45,10 @@
 
 QT_BEGIN_NAMESPACE
 
+#ifdef __clang__
+#pragma clang attribute push (__attribute__((target("ssse3"))), apply_to=function)
+#endif
+
 /* The instruction palignr uses direct arguments, so we have to generate the code fo the different
    shift (4, 8, 12). Checking the alignment inside the loop is unfortunatelly way too slow.
  */
@@ -184,6 +188,10 @@ const uint * QT_FASTCALL qt_fetchUntransformed_888_ssse3(uint *buffer, const Ope
     qt_convert_rgb888_to_rgb32_ssse3(buffer, line, length);
     return buffer;
 }
+
+#ifdef __clang__
+#pragma clang attribute pop
+#endif
 
 QT_END_NAMESPACE
 

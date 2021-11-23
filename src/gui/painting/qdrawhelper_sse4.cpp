@@ -45,6 +45,10 @@
 
 QT_BEGIN_NAMESPACE
 
+#ifdef __clang__
+#pragma clang attribute push (__attribute__((target("sse4.1"))), apply_to=function)
+#endif
+
 template<bool RGBA>
 static void convertARGBToARGB32PM_sse4(uint *buffer, const uint *src, int count)
 {
@@ -370,6 +374,10 @@ void QT_FASTCALL storeA2RGB30PMFromARGB32PM_sse4<PixelOrderBGR>(uchar *dest, con
 template
 void QT_FASTCALL storeA2RGB30PMFromARGB32PM_sse4<PixelOrderRGB>(uchar *dest, const uint *src, int index, int count,
                                                                 const QVector<QRgb> *, QDitherInfo *);
+
+#ifdef __clang__
+#pragma clang attribute pop
+#endif
 
 QT_END_NAMESPACE
 

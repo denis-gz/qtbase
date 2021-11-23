@@ -82,7 +82,13 @@ qtConfig(png) {
 }
 
 # SIMD
-SSSE3_SOURCES += image/qimage_ssse3.cpp
-NEON_SOURCES += image/qimage_neon.cpp
-MIPS_DSPR2_SOURCES += image/qimage_mips_dspr2.cpp
-MIPS_DSPR2_ASM += image/qimage_mips_dspr2_asm.S
+macx {
+    SOURCES += image/qimage_ssse3.cpp
+    SOURCES += image/qimage_neon.cpp
+}
+else {
+    SSSE3_SOURCES += image/qimage_ssse3.cpp
+    NEON_SOURCES += image/qimage_neon.cpp
+    MIPS_DSPR2_SOURCES += image/qimage_mips_dspr2.cpp
+    MIPS_DSPR2_ASM += image/qimage_mips_dspr2_asm.S
+}

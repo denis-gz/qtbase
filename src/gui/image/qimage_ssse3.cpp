@@ -45,6 +45,10 @@
 
 QT_BEGIN_NAMESPACE
 
+#ifdef __clang__
+#pragma clang attribute push (__attribute__((target("ssse3"))), apply_to=function)
+#endif
+
 // Convert a scanline of RGB888 (src) to RGB32 (dst)
 // src must be at least len * 3 bytes
 // dst must be at least len * 4 bytes
@@ -135,6 +139,10 @@ void convert_RGB888_to_RGB32_ssse3(QImageData *dest, const QImageData *src, Qt::
         dest_data = (quint32 *)((uchar*)dest_data + dest->bytes_per_line);
     }
 }
+
+#ifdef __clang__
+#pragma clang attribute pop
+#endif
 
 QT_END_NAMESPACE
 

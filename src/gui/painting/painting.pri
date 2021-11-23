@@ -123,16 +123,28 @@ gcc:equals(QT_GCC_MAJOR_VERSION, 5) {
     NO_PCH_SOURCES += painting/qdrawhelper.cpp
 }
 
-SSE2_SOURCES += painting/qdrawhelper_sse2.cpp
-SSSE3_SOURCES += painting/qdrawhelper_ssse3.cpp
-SSE4_1_SOURCES += painting/qdrawhelper_sse4.cpp \
-                  painting/qimagescale_sse4.cpp
-ARCH_HASWELL_SOURCES += painting/qdrawhelper_avx2.cpp
+macx {
+    SOURCES += painting/qdrawhelper_sse2.cpp
+    SOURCES += painting/qdrawhelper_ssse3.cpp
+    SOURCES += painting/qdrawhelper_sse4.cpp \
+               painting/qimagescale_sse4.cpp
+    SOURCES += painting/qdrawhelper_avx2.cpp
+    SOURCES += painting/qdrawhelper_neon.cpp painting/qimagescale_neon.cpp
 
-NEON_SOURCES += painting/qdrawhelper_neon.cpp painting/qimagescale_neon.cpp
-NEON_HEADERS += painting/qdrawhelper_neon_p.h
+    HEADERS += painting/qdrawhelper_neon_p.h
+}
+else {
+    SSE2_SOURCES += painting/qdrawhelper_sse2.cpp
+    SSSE3_SOURCES += painting/qdrawhelper_ssse3.cpp
+    SSE4_1_SOURCES += painting/qdrawhelper_sse4.cpp \
+                      painting/qimagescale_sse4.cpp
+    ARCH_HASWELL_SOURCES += painting/qdrawhelper_avx2.cpp
+    NEON_SOURCES += painting/qdrawhelper_neon.cpp painting/qimagescale_neon.cpp
+    NEON_HEADERS += painting/qdrawhelper_neon_p.h
+}
+
 !uikit:!win32:contains(QT_ARCH, "arm"): CONFIG += no_clang_integrated_as
-!uikit:!win32:!integrity:!contains(QT_ARCH, "arm64") {
+!uikit:!win32:!integrity:!contains(QT_ARCH, "arm64"):!contains(QMAKE_APPLE_DEVICE_ARCHS, "arm64") {
     NEON_ASM += ../3rdparty/pixman/pixman-arm-neon-asm.S painting/qdrawhelper_neon_asm.S
     DEFINES += ENABLE_PIXMAN_DRAWHELPERS
 }

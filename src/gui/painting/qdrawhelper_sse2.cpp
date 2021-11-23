@@ -48,6 +48,11 @@
 QT_BEGIN_NAMESPACE
 
 #ifndef QDRAWHELPER_AVX
+
+#ifdef __clang__
+#pragma clang attribute push (__attribute__((target("sse2"))), apply_to=function)
+#endif
+
 // in AVX mode, we'll use the SSSE3 code
 void qt_blend_argb32_on_argb32_sse2(uchar *destPixels, int dbpl,
                                     const uchar *srcPixels, int sbpl,
@@ -607,6 +612,9 @@ void qt_scale_image_argb32_on_argb32_sse2(uchar *destPixels, int dbpl,
     }
 }
 
+#ifdef __clang__
+#pragma clang attribute pop
+#endif
 
 QT_END_NAMESPACE
 

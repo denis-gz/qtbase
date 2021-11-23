@@ -50,6 +50,10 @@ enum {
     HalfPoint = 1 << 15
 };
 
+#ifdef __clang__
+#pragma clang attribute push (__attribute__((target("avx2"))), apply_to=function)
+#endif
+
 // Vectorized blend functions:
 
 // See BYTE_MUL_SSE2 for details.
@@ -927,6 +931,10 @@ void QT_FASTCALL fetchTransformedBilinearARGB32PM_fast_rotate_helper_avx2(uint *
         ++b;
     }
 }
+
+#ifdef __clang__
+#pragma clang attribute pop
+#endif
 
 QT_END_NAMESPACE
 
