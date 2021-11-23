@@ -136,7 +136,7 @@ public:
         WV_CE_based = 0x0f00
     };
 
-#define Q_MV_OSX(major, minor) (major == 10 ? minor + 2 : (major == 9 ? 1 : 0))
+#define Q_MV_OSX(major, minor) (major > 10 ? (major << 4 | minor) : (major == 10 ? (minor + 2) : (major == 9 ? 1 : 0)))
 #define Q_MV_IOS(major, minor) (QSysInfo::MV_IOS | major << 4 | minor)
 #define Q_MV_TVOS(major, minor) (QSysInfo::MV_TVOS | major << 4 | minor)
 #define Q_MV_WATCHOS(major, minor) (QSysInfo::MV_WATCHOS | major << 4 | minor)
@@ -159,6 +159,11 @@ public:
         MV_10_10 = Q_MV_OSX(10, 10),
         MV_10_11 = Q_MV_OSX(10, 11),
         MV_10_12 = Q_MV_OSX(10, 12),
+        MV_10_13 = Q_MV_OSX(10, 13),
+        MV_10_14 = Q_MV_OSX(10, 14),
+        MV_10_15 = Q_MV_OSX(10, 15),
+        MV_11_0 = Q_MV_OSX(11, 0),
+        MV_12_0 = Q_MV_OSX(12, 0),
 
         /* codenames */
         MV_CHEETAH = MV_10_0,
@@ -174,6 +179,11 @@ public:
         MV_YOSEMITE = MV_10_10,
         MV_ELCAPITAN = MV_10_11,
         MV_SIERRA = MV_10_12,
+        MV_HIGHSIERRA = MV_10_13,
+        MV_MOJAVE = MV_10_14,
+        MV_CATALINA = MV_10_15,
+        MV_BIGSUR = MV_11_0,
+        MV_MONTEREY = MV_12_0,
 
         /* iOS */
         MV_IOS     = 1 << 8,
