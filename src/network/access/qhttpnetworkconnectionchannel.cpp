@@ -1046,6 +1046,9 @@ void QHttpNetworkConnectionChannel::_q_error(QAbstractSocket::SocketError socket
     case QAbstractSocket::SslHandshakeFailedError:
         errorCode = QNetworkReply::SslHandshakeFailedError;
         break;
+    case QAbstractSocket::ProxyConnectionRefusedError:
+        errorCode = QNetworkReply::ProxyConnectionRefusedError;
+        break;
     case QAbstractSocket::ProxyConnectionClosedError:
         // try to reconnect/resend before sending an error.
         if (reconnectAttempts-- > 0) {
