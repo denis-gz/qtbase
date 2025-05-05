@@ -531,7 +531,7 @@ static void qt_png_warning(png_structp /*png_ptr*/, png_const_charp message)
 void QPngHandlerPrivate::readPngTexts(png_info *info)
 {
 #ifndef QT_NO_IMAGEIO_TEXT_LOADING
-    png_textp text_ptr;
+    png_textp text_ptr=nullptr;
     int num_text=0;
     png_get_text(png_ptr, info, &text_ptr, &num_text);
 
