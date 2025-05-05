@@ -111,7 +111,11 @@ public:
 #endif
 #if defined(Q_OS_WIN)
         JunctionType        = 0x04000000,
+#if !defined(NO_LNK_LINK)
         WinLnkType          = 0x08000000,   // Note: Uses the same position for AliasType on Mac
+#else
+        WinLnkType          =        0x0,
+#endif
 #else
         JunctionType        =        0x0,
         WinLnkType          =        0x0,
