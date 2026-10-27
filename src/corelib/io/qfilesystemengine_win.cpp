@@ -1567,7 +1567,8 @@ bool QFileSystemEngine::moveFileToTrash(const QFileSystemEntry &source,
     */
     if (QOperatingSystemVersion::current() > QOperatingSystemVersion::Windows7) {
 #  if defined(__IFileOperation_INTERFACE_DEFINED__)
-        CoInitialize(NULL);
+        // Fails on an MTA thread, and then there is no initialization of ours to release
+        HRESULT comInit = CoInitialize(NULL);
         IFileOperation *pfo = nullptr;
         IShellItem *deleteItem = nullptr;
         FileOperationProgressSink *sink = nullptr;
@@ -1580,7 +1581,8 @@ bool QFileSystemEngine::moveFileToTrash(const QFileSystemEntry &source,
                 deleteItem->Release();
             if (pfo)
                 pfo->Release();
-            CoUninitialize();
+            if (SUCCEEDED(comInit))
+                CoUninitialize();
             if (!SUCCEEDED(hres))
                 error = QSystemError(hres, QSystemError::NativeError);
         });
