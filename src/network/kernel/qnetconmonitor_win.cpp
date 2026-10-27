@@ -536,6 +536,9 @@ public:
     bool start();
     void stop();
 
+    // Releases COM when not monitoring (start() re-initializes it)
+    void releaseCom();
+
     void setConnectivity(NLM_CONNECTIVITY newConnectivity);
 
 private:
@@ -544,6 +547,7 @@ private:
     ComPtr<QNetworkListManagerEvents> managerEvents;
     NLM_CONNECTIVITY connectivity = NLM_CONNECTIVITY_DISCONNECTED;
 
+    DWORD comThreadId = 0; // the thread our CoInitialize() succeeded on
     bool monitoring = false;
     bool comInitFailed = false;
 };
@@ -649,6 +653,7 @@ QNetworkStatusMonitorPrivate::QNetworkStatusMonitorPrivate()
         comInitFailed = true;
         return;
     }
+    comThreadId = GetCurrentThreadId();
     managerEvents = new QNetworkListManagerEvents(this);
 }
 
@@ -658,6 +663,25 @@ QNetworkStatusMonitorPrivate::~QNetworkStatusMonitorPrivate()
         return;
     if (monitoring)
         stop();
+    else
+        releaseCom(); // also when monitoring was never started
+}
+
+void QNetworkStatusMonitorPrivate::releaseCom()
+{
+    Q_ASSERT(!monitoring);
+    if (comInitFailed)
+        return;
+    managerEvents.Reset();
+    // On any other thread (e.g. when destroyed after the owning thread has finished),
+    // CoUninitialize() would release another owner's initialization, so leak ours instead
+    if (GetCurrentThreadId() == comThreadId) {
+        CoUninitialize();
+    } else {
+        qCDebug(lcNetMon, "Not releasing COM initialized on thread %lu from thread %lu",
+            comThreadId, GetCurrentThreadId());
+    }
+    comInitFailed = true; // we check this value in start() to see if we need to re-initialize
 }
 
 void QNetworkStatusMonitorPrivate::setConnectivity(NLM_CONNECTIVITY newConnectivity)
@@ -682,6 +706,7 @@ bool QNetworkStatusMonitorPrivate::start()
             comInitFailed = true;
             return false;
         }
+        comThreadId = GetCurrentThreadId();
         comInitFailed = false;
     }
     if (!managerEvents)
@@ -699,10 +724,8 @@ void QNetworkStatusMonitorPrivate::stop()
     // Can return false but realistically shouldn't since that would break everything:
     managerEvents->stop();
     monitoring = false;
-    managerEvents.Reset();
 
-    CoUninitialize();
-    comInitFailed = true; // we check this value in start() to see if we need to re-initialize
+    releaseCom();
 }
 
 QNetworkStatusMonitor::QNetworkStatusMonitor(QObject *parent)
@@ -747,9 +770,14 @@ bool QNetworkStatusMonitor::isNetworkAccessible()
 
 bool QNetworkStatusMonitor::event(QEvent *event)
 {
-    if (event->type() == QEvent::ThreadChange && isMonitoring()) {
-        stop();
-        QMetaObject::invokeMethod(this, &QNetworkStatusMonitor::start, Qt::QueuedConnection);
+    if (event->type() == QEvent::ThreadChange) {
+        // Sent in the old thread: release COM here, the new thread initializes it in start()
+        if (isMonitoring()) {
+            stop();
+            QMetaObject::invokeMethod(this, &QNetworkStatusMonitor::start, Qt::QueuedConnection);
+        } else {
+            d_func()->releaseCom();
+        }
     }
 
     return QObject::event(event);
